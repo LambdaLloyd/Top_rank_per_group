@@ -1,7 +1,6 @@
-package lambdalloyd.nl
+package nl.lambdalloyd
 import scala.slick.driver.H2Driver.simple._
 
-object Table {
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
 class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, "EMP") {
   def id: Column[String] = column("EMP_ID", O.PrimaryKey) // This is the primary key column
@@ -18,5 +17,4 @@ class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double
 class Dual(tag: Tag) extends Table[String](tag, "DUAL") {
   def x: Column[String] = column("X")
   def * = x
-}
 }
