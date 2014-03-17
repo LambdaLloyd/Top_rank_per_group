@@ -1,10 +1,10 @@
-package lambdalloyd.nl
+package nl.lambdalloyd
 import scala.slick.driver.H2Driver.simple._
 import scala.slick.lifted.ProvenShape
+import nl.lambdalloyd._
 
 // The main application
 object TopNrankSLICKplainSQL extends App {
-  import Table._
 
   val topN = 3
 
@@ -20,21 +20,21 @@ object TopNrankSLICKplainSQL extends App {
 
       // Fill the database
       val employeesInsertResult = employees ++= Seq(
-        ("E10297", "Tyler Bennett",  Option("D101"), Option(32000.0)),
-        ("E21437", "John Rappl",  Option("D050"), Option(47000)),
-        ("E00127", "George Woltman",  Option("D101"), Option(53500)),
-        ("E63535", "Adam Smith",  Option("D202"), Option(18000)),
-        ("E39876", "Claire Buckman",  Option("D202"), Option(27800)),
-        ("E04242", "David McClellan",  Option("D101"), Option(41500)),
-        ("E01234", "Rich Holcomb",  Option("D202"), Option(49500)),
-        ("E41298", "Nathan Adams",  Option("D050"), Option(21900)),
-        ("E43128", "Richard Potter",  Option("D101"), Option(15900)),
-        ("E27002", "David Motsinger",  Option("D202"), Option(19250)),
-        ("E03033", "Tim Sampair",  Option("D101"), Option(27000)),
-        ("E10001", "Kim Arlich",  Option("D190"), Option(57000)),
-        ("E16398", "Timothy Grove",  Option("D190"), Option(29900)),
-        ("E16399", "Timothy Grave",  Option("D190"), Option(29900)),
-        ("E16400", "Timothy Grive",  Option("D190"), Option(29900)))
+        ("E10297", "Tyler Bennett", Option("D101"), Option(32000.0)),
+        ("E21437", "John Rappl", Option("D050"), Option(47000)),
+        ("E00127", "George Woltman", Option("D101"), Option(53500)),
+        ("E63535", "Adam Smith", Option("D202"), Option(18000)),
+        ("E39876", "Claire Buckman", Option("D202"), Option(27800)),
+        ("E04242", "David McClellan", Option("D101"), Option(41500)),
+        ("E01234", "Rich Holcomb", Option("D202"), Option(49500)),
+        ("E41298", "Nathan Adams", Option("D050"), Option(21900)),
+        ("E43128", "Richard Potter", Option("D101"), Option(15900)),
+        ("E27002", "David Motsinger", Option("D202"), Option(19250)),
+        ("E03033", "Tim Sampair", Option("D101"), Option(27000)),
+        ("E10001", "Kim Arlich", Option("D190"), Option(57000)),
+        ("E16398", "Timothy Grove", Option("D190"), Option(29900)),
+        ("E16399", "Timothy Grave", Option("D190"), Option(29900)),
+        ("E16400", "Timothy Grive", Option("D190"), Option(29900)))
 
       /* Manual SQL / String Interpolation */
       // Required import for the sql interpolator
