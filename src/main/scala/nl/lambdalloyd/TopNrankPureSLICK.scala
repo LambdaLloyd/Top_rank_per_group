@@ -4,7 +4,7 @@ import scala.slick.lifted.ProvenShape
 
 /** In pure SLICK, find the top N salaries in each department, where N is provided as a parameter.
  *
- *  @version			0.8	2014-03-13
+ *  @version			0.9	2014-03-18
  *  @author		Frans W. van den Berg
  *
  *  How it works:
@@ -41,25 +41,23 @@ object TopNrankPureSLICK extends App {
   /** The first part of the union all query
    *  Yields to "Report N ranks for each department."
    */
-  def headLineQuery(topN: Column[Int]) = dual.map {
-    case (idd) => (HeadLine.id, "", "", Option("0"), Option(0.0), 0,
-      topN + 0 /*Bug workaround*/ )
-  }
+  def headLineQuery(topN: Column[Int]) =
+    dual.map { case (_) => (HeadLine.id, "", "", Option("0"), Option(0.0), 0, topN) }
 
   /** The second part of the union all query
    *  Summarize the total table
    */
   def totSummaryQuery = dual.map(c => (TotSummary.id, "", "", Option("0"),
-    (for (c <- employees) yield c.salary).avg,
-    (for (emp <- employees) yield emp.deptId).countDistinct,
-    (for (emp <- employees) yield emp.id).length))
+    employees.map(_.salary).avg,
+    employees.map(_.deptId).countDistinct,
+    employees.map(_.id).length))
 
   /** The third part of the union all query
    *  Separator line between departments
    *  Note: dept variable is only for sorting purpose
    */
   def depSepaQuery = employees.groupBy(_.deptId)
-    .map { case (dept, css) => (DeptSeparator.id, "", "", dept, Option(0.0), 0, 0) }
+    .map { case (dept, _) => (DeptSeparator.id, "", "", dept, Option(0.0), 0, 0) }
 
   /** The fourth part of the union all query
    *  Summarize the department
@@ -71,23 +69,24 @@ object TopNrankPureSLICK extends App {
    *  The column names are printed.
    */
   def depColNamesQuery = employees.groupBy(_.deptId)
-    .map { case (dept, css) => (DeptColNames.id, "", "", dept, Option(0.0), 0, 0) }
+    .map { case (dept, _) => (DeptColNames.id, "", "", dept, Option(0.0), 0, 0) }
 
   /** The seventh part of the union all query
    *  A ruler to format the table
    */
   def depColLineal = employees.groupBy(_.deptId)
-    .map { case (dept, css) => (DeptColLineal.id, "", "", dept, Option(0.0), 0, 0) }
+    .map { case (dept, _) => (DeptColLineal.id, "", "", dept, Option(0.0), 0, 0) }
 
   /** The main part of the union all query - here is the beef
    *  To display the top employees by:
    *  id, name, salary. Dept is not displayed, only for sorting purpose.
    */
   def mainQuery(topN: Column[Int]) = {
-    def countColleaguesHasMoreOrSame(empId: Column[String]) = (for {
-      (e3, e4) <- employees innerJoin employees
-      if (empId === e3.id) && (e3.deptId === e4.deptId) && (e3.salary <= e4.salary)
-    } yield (e4.salary)).countDistinct
+    def countColleaguesHasMoreOrSame(empId: Column[String]) = (
+      for {
+        (e3, e4) <- employees innerJoin employees
+        if (empId === e3.id) && (e3.deptId === e4.deptId) && (e3.salary <= e4.salary)
+      } yield (e4.salary)).countDistinct
 
     /** Returns the number of equal salaries in a department. Normally 1.
      *  For checking ties, a.k.a ex aequo.
@@ -108,7 +107,7 @@ object TopNrankPureSLICK extends App {
 
   //** The last part of the union all query*/
   def bottomLineQuery = TableQuery[Dual].map(c =>
-    (BottomLine.id, "", "", Option(None + "") /*Bug evaluates to String 'None'*/ ,
+    (BottomLine.id, "", "", Option(None + "") /*Work around, evaluates to Some(None) ment is None*/ ,
       Option(0.0), 0, mainQuery(topN).length))
 
   /** Compose the query with above queries and union all's*/
@@ -153,30 +152,17 @@ object TopNrankPureSLICK extends App {
   ////////////////////////// Program starts here //////////////////////////////
 
   // Create a connection (called a "session") to an in-memory H2 database
-  Database.forURL("jdbc:h2:mem:hello", driver = "org.h2.Driver").withSession {
+  // NO autocommit and some options to consider
+  Database.forURL("jdbc:h2:mem:hello", driver = "org.h2.Driver").withTransaction {
     implicit session =>
 
       // Create the schema
       employees.ddl.create
 
-      // Fill the database
-      employees ++= Seq(
-        ("E10297", "Tyler Bennett", Option("D101"), Option(32000)),
-        ("E21437", "John Rappl", Option("D050"), Option(47000)),
-        ("E21438", "trainee", Option("D050"), None),
-        ("E00127", "George Woltman", Option("D101"), Option(53500)),
-        ("E63535", "Adam Smith", Option("D202"), Option(18000)),
-        ("E39876", "Claire Buckman", Option("D202"), Option(27800)),
-        ("E04242", "David McClellan", Option("D101"), Option(41500)),
-        ("E01234", "Rich Holcomb", Option("D202"), Option(49500)),
-        ("E41298", "Nathan Adams", Option("D050"), Option(21900)),
-        ("E43128", "Richard Potter", Option("D101"), Option(15900)),
-        ("E27002", "David Motsinger", Option("D202"), Option(19250)),
-        ("E03033", "Tim Sampair", Option("D101"), Option(27000)),
-        ("E10001", "Kim Arlich", Option("D190"), Option(57000)),
-        ("E16398", "Timothy Grove", Option("D190"), Option(29900)),
-        ("E16399", "Timothy Grave", Option("D190"), Option(29900)),
-        ("E16400", "Timothy Grive", Option("D190"), Option(29900)))
+      // Fill the database, commit work if success
+      session.withTransaction {
+        employees ++= Emp.content
+      }
 
       // Precompile the composed query
       val allQueryCompiled = Compiled(allQuery(_)) // To compile the parameter must be Column[Int]
