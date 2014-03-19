@@ -107,8 +107,8 @@ object TopNrankPureSLICK extends App {
 
   //** The last part of the union all query*/
   def bottomLineQuery = TableQuery[Dual].map(c =>
-    (BottomLine.id, "", "", Option(None + "") /*Work around, evaluates to Some(None) ment is None*/ ,
-      Option(0.0), 0, mainQuery(topN).length))
+    (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some(None) mend is None
+      Option(0.0), 0, mainQuery(topN).length)) // to force a last place is sorting.
 
   /** Compose the query with above queries and union all's*/
   def allQuery(topN0: Column[Int]) =
@@ -161,11 +161,11 @@ object TopNrankPureSLICK extends App {
 
       // Fill the database, commit work if success
       session.withTransaction {
-        employees ++= Emp.content
+        employees ++= Emp.testContent
       }
 
       // Precompile the composed query
-      val allQueryCompiled = Compiled(allQuery(_)) // To compile the parameter must be Column[Int]
+      val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
       // Test generated SQL   println(allQueryCompiled(topN).selectStatement)
       // Execute the precompiled query.
       allQueryCompiled(topN).foreach { row => println(presentation(row)) }

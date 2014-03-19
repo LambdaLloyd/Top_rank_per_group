@@ -20,7 +20,7 @@ class TablesSuite extends FunSuite with BeforeAndAfter {
 
   def insertEmployee2 = employees += ("E21439", "trainee", Option("D050"), None)
 
-  def insertContent = employees ++= Emp.content.toIterable
+  def insertContent = employees ++= Emp.testContent.toIterable
 
   before {
     session = db.createSession

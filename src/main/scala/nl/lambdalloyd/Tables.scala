@@ -2,7 +2,7 @@ package nl.lambdalloyd
 import scala.slick.driver.H2Driver.simple._
 
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
-class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, "EMP") {
+class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, Emp.TABLENAME) {
   def id: Column[String] = column("EMP_ID", O.PrimaryKey) // This is the primary key column
   def name: Column[String] = column("EMP_NAME", O.NotNull)
   def deptId: Column[Option[String]] = column("DEPT_ID", O.NotNull)
@@ -13,7 +13,9 @@ class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double
 }
 
 object Emp {
-  def content: Seq[(String, String, Option[String], Option[Double])] =
+  val TABLENAME = "EMP"
+
+  def testContent: Seq[(String, String, Option[String], Option[Double])] =
     Seq(("E10297", "Tyler Bennett", Option("D101"), Option(32000)),
       ("E21437", "John Rappl", Option("D050"), Option(47000)),
       ("E21438", "trainee", Option("D050"), None),
