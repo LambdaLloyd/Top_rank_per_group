@@ -3,7 +3,8 @@ Top_rank_per_group
 
 Find the top N salaries in each department, where N is provided as a parameter.
 
-Sample output:```
+Sample output:
+```
 Report top  3 ranks for each department.
 Tot. 16 employees in 4 deps.Avg. sal.: 33336,67
 -
