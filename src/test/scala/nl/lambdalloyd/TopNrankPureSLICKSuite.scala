@@ -1,34 +1,48 @@
 package nl.lambdalloyd
 
-import org.scalatest._
 import scala.slick.driver.H2Driver.simple._
+//import scala.slick.driver.H2Driver.simple.Database
+//import scala.slick.driver.H2Driver.simple.Session
+//import scala.slick.lifted.{ Column, TableQuery }
+
+import org.scalatest._
 import scala.slick.jdbc.meta._
-import scala.slick.jdbc.StaticQuery._
-import scala.slick.jdbc.StaticQuery
+import scala.slick.lifted.Compiled
+import scala.slick.jdbc.StaticQuery.u
 
 class TopNrankPureSLICKSuite extends FunSuite with BeforeAndAfter {
-  val topN = 3
-  // The query interface for the Emp and H2 provided dual table
-  val employees = TableQuery[Emp]
-  val dual = TableQuery[Dual]
+  import TopNrankPureSLICKSuite._
+  val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]      
+
+  before {
+    session = db.createSession
+  }
+
+  test("Table is total filled") { assert(employees.length.run === Emp.testContent.size) }
+
+  test("Test the first row") {
+    val ist = allQueryCompiled(topN).run
+    assert(ist.head === soll.head)
+  }
+
+  test("Query all rows works") {
+    val ist = allQueryCompiled(topN).run
+    assert(ist === soll)
+  }
+
+  test("Conversion to output works") {
+    val ist = allQueryCompiled(topN).run.map(row => TopNrankPureSLICK.presentation(row))
+    assert(expected === ist)
+  }
+
+  after {
+    session.close()
+  }
+}
+
+object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
 
   implicit var session: Session = _
-  var allQueryCompiled: scala.slick.lifted.CompiledFunction[slick.driver.H2Driver.simple.Column[Int] => scala.slick.lifted.Query[( //
-  scala.slick.lifted.Column[Int], //
-  scala.slick.lifted.Column[String], //
-  scala.slick.lifted.Column[String], //
-  scala.slick.lifted.Column[Option[String]], //
-  scala.slick.lifted.Column[Option[Double]], //
-  scala.slick.lifted.Column[Int], //
-  scala.slick.lifted.Column[Int]), (Int, String, String, Option[String], Option[Double], Int, Int)], slick.driver.H2Driver.simple.Column[Int], Int, //
-  scala.slick.lifted.Query[(scala.slick.lifted.Column[Int], //
-  scala.slick.lifted.Column[String], //
-  scala.slick.lifted.Column[String], //
-  scala.slick.lifted.Column[Option[String]], //
-  scala.slick.lifted.Column[Option[Double]], //
-  scala.slick.lifted.Column[Int], //
-  scala.slick.lifted.Column[Int]), //
-  (Int, String, String, Option[String], Option[Double], Int, Int)], Seq[(Int, String, String, Option[String], Option[Double], Int, Int)]] = _
 
   //  val db = Database.forURL(
   //    "jdbc:h2:mem:test1;AUTOCOMMIT=OFF;WRITE_DELAY=300;MVCC=TRUE;LOCK_MODE=0;FILE_LOCK=SOCKET",
@@ -41,92 +55,7 @@ class TopNrankPureSLICKSuite extends FunSuite with BeforeAndAfter {
     prop = null,
     driver = "org.h2.Driver")
 
-  // Enumerates the sections
-  import TopNrankPureSLICK.Sections._
-
-  def headLineQuery(topN: Column[Int]) =
-    dual.map { case (_) => (HeadLine.id, "", "", Option("0"), Option(0.0), 0, topN) }
-
-  /** The second part of the union all query
-   *  Summarize the total table
-   */
-  def totSummaryQuery = dual.map(c => (TotSummary.id, "", "", Option("0"),
-    employees.map(_.salary).avg,
-    employees.map(_.deptId).countDistinct,
-    employees.map(_.id).length))
-
-  /** The third part of the union all query
-   *  Separator line between departments
-   *  Note: dept variable is only for sorting purpose
-   */
-  def depSepaQuery = employees.groupBy(_.deptId)
-    .map { case (dept, _) => (DeptSeparator.id, "", "", dept, Option(0.0), 0, 0) }
-
-  /** The fourth part of the union all query
-   *  Summarize the department
-   */
-  def depSummaryQuery = employees.groupBy(_.deptId)
-    .map { case (dept, css) => (DeptSummary.id, "", "", dept, css.map(_.salary).avg, 0, css.length) }
-
-  /** The sixth part of the union all query
-   *  The column names are printed.
-   */
-  def depColNamesQuery = employees.groupBy(_.deptId)
-    .map { case (dept, _) => (DeptColNames.id, "", "", dept, Option(0.0), 0, 0) }
-
-  /** The seventh part of the union all query
-   *  A ruler to format the table
-   */
-  def depColLineal = employees.groupBy(_.deptId)
-    .map { case (dept, _) => (DeptColLineal.id, "", "", dept, Option(0.0), 0, 0) }
-
-  /** The main part of the union all query - here is the beef
-   *  To display the top employees by:
-   *  id, name, salary. Dept is not displayed, only for sorting purpose.
-   */
-  def mainQuery(topN: Column[Int]) = {
-    def countColleaguesHasMoreOrSame(empId: Column[String]) = (
-      for {
-        (e3, e4) <- employees innerJoin employees
-        if (empId === e3.id) && (e3.deptId === e4.deptId) && (e3.salary <= e4.salary)
-      } yield (e4.salary)).countDistinct
-
-    /** Returns the number of equal salaries in a department. Normally 1.
-     *  For checking ties, a.k.a ex aequo.
-     */
-    def countSalaryTies(deptId: Column[Option[String]], salary: Column[Option[Double]]) =
-      employees.filter(e1 => (deptId === e1.deptId) && (salary === e1.salary)).length
-
-    employees.map {
-      case (row) => (MainSection.id,
-        row.id,
-        row.name,
-        row.deptId,
-        row.salary,
-        countColleaguesHasMoreOrSame(row.id), /*a.k.a. rank*/
-        countSalaryTies(row.deptId, row.salary))
-    }.filter(_._6 /*In fact countColleaguesHasMoreOrSame*/ <= topN)
-  } // mainQuery
-
-  //** The last part of the union all query*/
-  def bottomLineQuery = TableQuery[Dual].map(c =>
-    (BottomLine.id, "", "", Option(None + "") /*Work around, evaluates to Some(None) ment is None*/ ,
-      Option(0.0), 0, mainQuery(topN).length))
-
-  /** Compose the query with above queries and union all's*/
-  def allQuery(topN0: Column[Int]) =
-    (headLineQuery(topN0) // Run-time error TopNrankPureSLICK.headLineQuery(topN0)
-      ++ totSummaryQuery
-      ++ depSepaQuery
-      ++ depSummaryQuery
-      ++ depColNamesQuery
-      ++ depColLineal
-      ++ mainQuery(topN0)
-      ++ bottomLineQuery) // Sort based on the following columns
-      .sortBy(_._5.desc.nullsLast) // salary
-      .sortBy(_._1) //section
-      .sortBy(_._4.nullsLast) //deptId
-
+  import Sections._
   val soll: Vector[(Int, String, String, Option[String], Option[Double], Int, Int)] =
     Vector((HeadLine.id, "", "", Option("0"), Option(0.0), 0, 3),
       (TotSummary.id, "", "", Option("0"), Option(500050.0 / 15.0), 4, 16),
@@ -162,14 +91,50 @@ class TopNrankPureSLICKSuite extends FunSuite with BeforeAndAfter {
       (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some(None), mend is None
         Option(0.0), 0, 13))
 
+  val expected = Vector(
+    "Report top  3 ranks for each department.",
+    "Tot. 16 employees in 4 deps.Avg. sal.: 33336,67",
+    "-",
+    "Department: D050, pop:  3.Avg Salary:  34450,00",
+    "   Employee ID       Employee name   SalaryRank",
+    "-------------+-------------------+--------+---+",
+    "        E21437          John Rappl 47000,00   1",
+    "        E41298        Nathan Adams 21900,00   2",
+    "        E21438             trainee     null   -",
+    "-",
+    "Department: D101, pop:  5.Avg Salary:  33980,00",
+    "   Employee ID       Employee name   SalaryRank",
+    "-------------+-------------------+--------+---+",
+    "        E00127      George Woltman 53500,00   1",
+    "        E04242     David McClellan 41500,00   2",
+    "        E10297       Tyler Bennett 32000,00   3",
+    "-",
+    "Department: D190, pop:  4.Avg Salary:  36675,00",
+    "   Employee ID       Employee name   SalaryRank",
+    "-------------+-------------------+--------+---+",
+    "        E10001          Kim Arlich 57000,00   1",
+    "        E16398       Timothy Grove 29900,00  T2",
+    "        E16399       Timothy Grave 29900,00  T2",
+    "        E16400       Timothy Grive 29900,00  T2",
+    "-",
+    "Department: D202, pop:  4.Avg Salary:  28637,50",
+    "   Employee ID       Employee name   SalaryRank",
+    "-------------+-------------------+--------+---+",
+    "        E01234        Rich Holcomb 49500,00   1",
+    "        E39876      Claire Buckman 27800,00   2",
+    "        E27002     David Motsinger 19250,00   3",
+    "  13 Employees are listed.")
+
   // Create a connection (called a "session") to an in-memory H2 database
   // NO autocommit !
   db.withTransaction {
     implicit session =>
       val tables = MTable.getTables().list()
-      if (tables.count(_.name.name.equals(Emp.TABLENAME)) == 1) println("Emp exists, will be initialized.")
+
+      if (tables.map(_.name.name).contains(Emp.TABLENAME)) println("Emp exists, will be rebuild.")
+
       //sql"drop table if exists ${Emp.TABLENAME}".as[String].execute // Doesn't work
-      (scala.slick.jdbc.StaticQuery.u + s"drop table if exists ${Emp.TABLENAME}").execute
+      (u + s"drop table if exists ${Emp.TABLENAME}").execute
 
       // Create the schema
       employees.ddl.create
@@ -179,36 +144,7 @@ class TopNrankPureSLICKSuite extends FunSuite with BeforeAndAfter {
         employees ++= Emp.testContent
       }
 
-      allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]      
+    //       allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]      
+
   }
-
-  before {
-    session = db.createSession
-  }
-
-  test("Table is total filled") {
-
-    assert(employees.length.run === Emp.testContent.size)
-  }
-
-  test("Test the first row") {
-    val ist = allQueryCompiled(topN).run
-    assert(ist.head === soll.head)
-  }
-
-  test("Test all rows") {
-    val ist = allQueryCompiled(topN).run
-    assert(ist === soll)
-  }
-
-  test("Conversion to output") {
-    allQueryCompiled(topN).foreach {
-
-      row => println(TopNrankPureSLICK.presentation(row))
-    }
-  }
-
-  after {
-    session.close()
-  }
-}
+} // object TopNrankPureSLICKSuite

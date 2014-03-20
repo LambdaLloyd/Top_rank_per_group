@@ -142,6 +142,6 @@ object TopNrankSLICKplainSQL extends App {
  order by DEPT_ID ,LINE ,SALARY desc, EMP_ID""".as[String]
 
       // Execute the query
-      plainQuery.foreach(println(_))
+      plainQuery.foreach(println)
   } // session
 } // TopNrankSLICK
