@@ -1,14 +1,15 @@
 package nl.lambdalloyd
 
-import scala.slick.driver.H2Driver.simple.{ doubleColumnType, intColumnType, stringColumnType }
-import scala.slick.driver.JdbcDriver.simple.booleanColumnExtensionMethods
-import scala.slick.driver.JdbcDriver.simple.booleanColumnType
-import scala.slick.driver.JdbcDriver.simple.booleanOptionColumnExtensionMethods
-import scala.slick.driver.JdbcDriver.simple.columnExtensionMethods
-import scala.slick.driver.JdbcDriver.simple.columnToOrdered
-import scala.slick.driver.JdbcDriver.simple.optionColumnExtensionMethods
-import scala.slick.driver.JdbcDriver.simple.singleOptionColumnQueryExtensionMethods
-import scala.slick.lifted.{ Column, TableQuery }
+import scala.slick.driver.H2Driver.simple._
+//import scala.slick.driver.H2Driver.simple.{ doubleColumnType, intColumnType, stringColumnType }
+//import scala.slick.driver.JdbcDriver.simple.booleanColumnExtensionMethods
+//import scala.slick.driver.JdbcDriver.simple.booleanColumnType
+//import scala.slick.driver.JdbcDriver.simple.booleanOptionColumnExtensionMethods
+//import scala.slick.driver.JdbcDriver.simple.columnExtensionMethods
+//import scala.slick.driver.JdbcDriver.simple.columnToOrdered
+//import scala.slick.driver.JdbcDriver.simple.optionColumnExtensionMethods
+//import scala.slick.driver.JdbcDriver.simple.singleOptionColumnQueryExtensionMethods
+//import scala.slick.lifted.{ Column, TableQuery }
 
 trait TopNrankPureSLICKtrait {
   val topN = 3 // Number of ranking salaries.
@@ -94,7 +95,7 @@ trait TopNrankPureSLICKtrait {
 
   //** The last part of the union all query*/
   def bottomLineQuery(topNo: Column[Int]) = TableQuery[Dual].map(c =>
-    (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some(None) mend is None
+    (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None") mend is None
       Option(0.0), 0, mainQuery(topNo).length)) // to force a last place is sorting.
 
   /** Compose the query with above queries and union all's*/

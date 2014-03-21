@@ -36,7 +36,7 @@ class TablesSuite extends FunSuite with BeforeAndAfter {
 
     val tables = MTable.getTables().list()
     assert(tables.size === 1)
-    assert(tables.count(_.name.name.equals("EMP")) === 1)
+    assert(tables.map(_.name.name).contains(Emp.TABLENAME))
   }
 
   test("Inserting an employee works") {

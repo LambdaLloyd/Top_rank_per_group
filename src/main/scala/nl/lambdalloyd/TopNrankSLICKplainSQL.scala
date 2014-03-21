@@ -1,7 +1,5 @@
 package nl.lambdalloyd
 import scala.slick.driver.H2Driver.simple._
-import scala.slick.lifted.ProvenShape
-import nl.lambdalloyd._
 
 // The main application
 object TopNrankSLICKplainSQL extends App {

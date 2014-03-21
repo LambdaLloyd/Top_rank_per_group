@@ -1,13 +1,10 @@
 package nl.lambdalloyd
 
 import scala.slick.driver.H2Driver.simple._
-//import scala.slick.driver.H2Driver.simple.Database
-//import scala.slick.driver.H2Driver.simple.Session
-//import scala.slick.lifted.{ Column, TableQuery }
+//import scala.slick.lifted.Compiled
 
 import org.scalatest._
 import scala.slick.jdbc.meta._
-import scala.slick.lifted.Compiled
 import scala.slick.jdbc.StaticQuery.u
 
 class TopNrankPureSLICKSuite extends FunSuite with BeforeAndAfter {
@@ -88,7 +85,7 @@ object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
       (MainSection.id, "E01234", "Rich Holcomb", Option("D202"), Option(49500.0), 1, 1),
       (MainSection.id, "E39876", "Claire Buckman", Option("D202"), Option(27800.0), 2, 1),
       (MainSection.id, "E27002", "David Motsinger", Option("D202"), Option(19250.0), 3, 1),
-      (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some(None), mend is None
+      (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None"), mend is None
         Option(0.0), 0, 13))
 
   val expected = Vector(
@@ -143,8 +140,5 @@ object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
       session.withTransaction {
         employees ++= Emp.testContent
       }
-
-    //       allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]      
-
   }
 } // object TopNrankPureSLICKSuite

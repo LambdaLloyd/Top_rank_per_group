@@ -1,11 +1,9 @@
 package nl.lambdalloyd
 
 import scala.slick.driver.H2Driver.simple._
-import scala.slick.driver.H2Driver.simple.{ doubleColumnType, intColumnType, stringColumnType }
-import scala.slick.lifted.Compiled
-
-import scala.slick.lifted.{ Column, TableQuery }
-import scala.slick.profile.RelationalDriver
+//import scala.slick.driver.H2Driver.simple.{ doubleColumnType, intColumnType, stringColumnType }
+//import scala.slick.lifted.Compiled
+//import scala.slick.lifted.{ Column, TableQuery }
 
 import slick.driver.H2Driver.backend.Database
 

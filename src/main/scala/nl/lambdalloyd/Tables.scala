@@ -1,4 +1,5 @@
-package nl.lambdalloyd
+ package nl.lambdalloyd
+
 import scala.slick.driver.H2Driver.simple._
 
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
