@@ -9,6 +9,15 @@ trait TopNrankPureSLICKtrait {
   val employees = TableQuery[Emp]
   val dual = TableQuery[Dual]
 
+  def createAndFillEmp(implicit session: Session) {
+    // Create the schema
+    employees.ddl.create
+    session.withTransaction {
+      // Fill the database, commit work if success
+      employees ++= Emp.testContent
+    }
+  }
+
   // Enumerates the sections
   object Sections extends Enumeration {
     val HeadLine, TotSummary, DeptSeparator, DeptSummary, //
@@ -21,7 +30,7 @@ trait TopNrankPureSLICKtrait {
    *  Yields to "Report N ranks for each department."
    */
   def headLineQuery(topNo: Column[Int]) =
-    dual.map { case (_) => (HeadLine.id, "", "", Option("0"), Option(0.0), 0, topNo) }
+    dual.map { _ => (HeadLine.id, "", "", Option("0"), Option(0.0), 0, topNo) }
 
   /** The second part of the union all query
    *  Summarize the total table
@@ -74,13 +83,11 @@ trait TopNrankPureSLICKtrait {
       employees.filter(e1 => (deptId === e1.deptId) && (salary === e1.salary)).length
 
     employees.map {
-      case (row) => (MainSection.id,
-        row.id,
-        row.name,
-        row.deptId,
-        row.salary,
-        countColleaguesHasMoreOrSame(row.id), /*a.k.a. rank*/
-        countSalaryTies(row.deptId, row.salary))
+      row =>
+        (MainSection.id,
+          row.id,row.name,row.deptId, row.salary,
+          countColleaguesHasMoreOrSame(row.id), /*a.k.a. rank*/
+          countSalaryTies(row.deptId, row.salary))
     }.filter(_._6 /*In fact countColleaguesHasMoreOrSame*/ <= topNc)
   } // mainQuery
 
@@ -102,5 +109,4 @@ trait TopNrankPureSLICKtrait {
       .sortBy(_._5.desc.nullsLast) // salary
       .sortBy(_._1) //section
       .sortBy(_._4.nullsLast) //deptId
-
 }

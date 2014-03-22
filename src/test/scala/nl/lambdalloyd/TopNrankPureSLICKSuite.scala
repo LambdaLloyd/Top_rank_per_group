@@ -1,7 +1,6 @@
 package nl.lambdalloyd
 
 import scala.slick.driver.H2Driver.simple._
-//import scala.slick.lifted.Compiled
 
 import org.scalatest._
 import scala.slick.jdbc.meta._
@@ -9,35 +8,34 @@ import scala.slick.jdbc.StaticQuery.u
 
 class TopNrankPureSLICKSuite extends WordSpec {
   import TopNrankPureSLICKSuite._
-  val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]      
+  val allQueryCompiled = Compiled(TopNrankPureSLICK.allQuery(_)) // This forces the parameter must be Column[Int]      
 
   implicit var session = db.createSession
 
-  "The table" when {
-    "totally filled" should {
+  "The Emp table" when {
+    "totally filled with default context" should {
       s"have total number of ${Emp.testContent.size} rows" in
-        assert(employees.length.run === Emp.testContent.size)
+        assert(TopNrankPureSLICK.employees.length.run === Emp.testContent.size)
     }
 
-    val ist = allQueryCompiled(topN).run
+    val ist = allQueryCompiled(3).run
 
-    "the query is run" should {
-      "have the first row right" in
+    "the query is runned" should {
+      "have the first row matched with expected value" in
         assert(ist.head === soll.head)
-      "the queryresult matches all expected rows" in { assert(ist === soll) }
+      "the queryresult matches all expected rows" in assert(ist === soll)
     }
 
     "this output is converted" should {
-      val formattedOutput = ist.map(TopNrankPureSLICK.presentation)
       "everthing as be expected" in {
-
-        assert(expected === formattedOutput)
+        assert(expectedRows === ist.map(TopNrankPureSLICK.presentation))
+        info("That would all.")
       }
     }
   }
 }
 
-object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
+object TopNrankPureSLICKSuite {
 
   //  val db = Database.forURL(
   //    "jdbc:h2:mem:test1;AUTOCOMMIT=OFF;WRITE_DELAY=300;MVCC=TRUE;LOCK_MODE=0;FILE_LOCK=SOCKET",
@@ -50,7 +48,7 @@ object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
     prop = null,
     driver = "org.h2.Driver")
 
-  import Sections._
+  import TopNrankPureSLICK.Sections._
   val soll: Vector[(Int, String, String, Option[String], Option[Double], Int, Int)] =
     Vector((HeadLine.id, "", "", Option("0"), Option(0.0), 0, 3),
       (TotSummary.id, "", "", Option("0"), Option(500050.0 / 15.0), 4, 16),
@@ -86,7 +84,8 @@ object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
       (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None"), mend is None
         Option(0.0), 0, 13))
 
-  val expected = Vector(
+  /** The expected rows after been filled with testContent and queried */
+  val expectedRows = Vector(
     "Report top  3 ranks for each department.",
     "Tot. 16 employees in 4 deps.Avg. sal.: 33336,67",
     "-",
@@ -128,15 +127,10 @@ object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
 
       //if (tables.map(_.name.name).contains(Emp.TABLENAME)) println("Emp exists, will be rebuild.")
 
-      //sql"drop table if exists ${Emp.TABLENAME}".as[String].execute // Doesn't work
+      //import scala.slick.jdbc.StaticQuery.interpolation
+      // sql"drop table if exists ${Emp.TABLENAME}".as[String].execute // Doesn't work
       (u + s"drop table if exists ${Emp.TABLENAME}").execute
 
-      // Create the schema
-      employees.ddl.create
-
-      // Fill the database, commit work if success
-      session.withTransaction {
-        employees ++= Emp.testContent
-      }
+      TopNrankPureSLICK.createAndFillEmp(session)
   }
 } // object TopNrankPureSLICKSuite

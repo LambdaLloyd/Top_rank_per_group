@@ -35,8 +35,9 @@ object Emp {
       ("E16400", "Timothy Grive", Option("D190"), Option(29900.0)))
 }
 
-// An auxiliary table mostly present in several databases
-// The soul purpose of this (pseudo) table is to provide one single row
+/** An auxiliary table mostly present in several databases
+ *  The soul purpose of this (pseudo) table is to provide one single row
+ */
 class Dual(tag: Tag) extends Table[String](tag, "DUAL") {
   def x: Column[String] = column("X")
   def * = x

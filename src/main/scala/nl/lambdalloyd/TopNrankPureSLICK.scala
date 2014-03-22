@@ -6,9 +6,6 @@ import slick.driver.H2Driver.backend.Database
 
 /** In pure SLICK, find the top N salaries in each department, where N is provided as a parameter.
  *
- *  @version			0.9	2014-03-18
- *  @author		Frans W. van den Berg
- *
  *  How it works:
  *  One composed query produces all the rows necessary for the output. The composed query is
  *  made of a union (union all) of queries mostly making a row per department. Two queries
@@ -22,11 +19,12 @@ import slick.driver.H2Driver.backend.Database
  *
  *  The rows are on a row by row basis formatted by a Scala match case construct
  *  according to the section tag. The resulting string is finally printed.
+ *
+ *  @version			0.9	2014-03-22
+ *  @author		Frans W. van den Berg
  */
-
-// The main application, first definition below 
 object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
-
+  // The main application, first definition below 
   import Sections._
 
   /** Convert a row represented as a tuple in a formatted string.*/
@@ -62,13 +60,7 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
   Database.forURL("jdbc:h2:mem:hello", driver = "org.h2.Driver").withTransaction {
     implicit session =>
 
-      // Create the schema
-      employees.ddl.create
-
-      // Fill the database, commit work if success
-      session.withTransaction {
-        employees ++= Emp.testContent
-      }
+      createAndFillEmp(session)
 
       // Precompile the composed query
       val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
