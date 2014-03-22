@@ -7,39 +7,37 @@ import org.scalatest._
 import scala.slick.jdbc.meta._
 import scala.slick.jdbc.StaticQuery.u
 
-class TopNrankPureSLICKSuite extends FunSuite with BeforeAndAfter {
+class TopNrankPureSLICKSuite extends WordSpec {
   import TopNrankPureSLICKSuite._
   val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]      
 
-  before {
-    session = db.createSession
-  }
+  implicit var session = db.createSession
 
-  test("Table is total filled") { assert(employees.length.run === Emp.testContent.size) }
+  "The table" when {
+    "totally filled" should {
+      s"have total number of ${Emp.testContent.size} rows" in
+        assert(employees.length.run === Emp.testContent.size)
+    }
 
-  test("Test the first row") {
     val ist = allQueryCompiled(topN).run
-    assert(ist.head === soll.head)
-  }
 
-  test("Query all rows works") {
-    val ist = allQueryCompiled(topN).run
-    assert(ist === soll)
-  }
+    "the query is run" should {
+      "have the first row right" in
+        assert(ist.head === soll.head)
+      "the queryresult matches all expected rows" in { assert(ist === soll) }
+    }
 
-  test("Conversion to output works") {
-    val ist = allQueryCompiled(topN).run.map(row => TopNrankPureSLICK.presentation(row))
-    assert(expected === ist)
-  }
+    "this output is converted" should {
+      val formattedOutput = ist.map(TopNrankPureSLICK.presentation)
+      "everthing as be expected" in {
 
-  after {
-    session.close()
+        assert(expected === formattedOutput)
+      }
+    }
   }
 }
 
 object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
-
-  implicit var session: Session = _
 
   //  val db = Database.forURL(
   //    "jdbc:h2:mem:test1;AUTOCOMMIT=OFF;WRITE_DELAY=300;MVCC=TRUE;LOCK_MODE=0;FILE_LOCK=SOCKET",
@@ -128,7 +126,7 @@ object TopNrankPureSLICKSuite extends TopNrankPureSLICKtrait {
     implicit session =>
       val tables = MTable.getTables().list()
 
-      if (tables.map(_.name.name).contains(Emp.TABLENAME)) println("Emp exists, will be rebuild.")
+      //if (tables.map(_.name.name).contains(Emp.TABLENAME)) println("Emp exists, will be rebuild.")
 
       //sql"drop table if exists ${Emp.TABLENAME}".as[String].execute // Doesn't work
       (u + s"drop table if exists ${Emp.TABLENAME}").execute

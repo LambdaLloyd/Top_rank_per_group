@@ -1,15 +1,6 @@
 package nl.lambdalloyd
 
 import scala.slick.driver.H2Driver.simple._
-//import scala.slick.driver.H2Driver.simple.{ doubleColumnType, intColumnType, stringColumnType }
-//import scala.slick.driver.JdbcDriver.simple.booleanColumnExtensionMethods
-//import scala.slick.driver.JdbcDriver.simple.booleanColumnType
-//import scala.slick.driver.JdbcDriver.simple.booleanOptionColumnExtensionMethods
-//import scala.slick.driver.JdbcDriver.simple.columnExtensionMethods
-//import scala.slick.driver.JdbcDriver.simple.columnToOrdered
-//import scala.slick.driver.JdbcDriver.simple.optionColumnExtensionMethods
-//import scala.slick.driver.JdbcDriver.simple.singleOptionColumnQueryExtensionMethods
-//import scala.slick.lifted.{ Column, TableQuery }
 
 trait TopNrankPureSLICKtrait {
   val topN = 3 // Number of ranking salaries.

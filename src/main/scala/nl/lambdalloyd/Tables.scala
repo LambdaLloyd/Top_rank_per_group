@@ -1,4 +1,4 @@
- package nl.lambdalloyd
+package nl.lambdalloyd
 
 import scala.slick.driver.H2Driver.simple._
 
