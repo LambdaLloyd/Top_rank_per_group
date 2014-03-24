@@ -4,7 +4,7 @@ import scala.slick.driver.H2Driver.simple._
 
 import slick.driver.H2Driver.backend.Database
 
-/** In pure SLICK, find the top N salaries in each department, where N is provided as a parameter.
+/** In pure SLICK, find the top-n salaries in each department, where n is provided as a parameter.
  *
  *  How it works:
  *  One composed query produces all the rows necessary for the output. The composed query is
@@ -62,9 +62,6 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
 
       createAndFillEmp(session)
 
-      // Precompile the composed query
-      val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
-      // Test generated SQL   println(allQueryCompiled(topN).selectStatement)
       // Execute the precompiled query.
       allQueryCompiled(topN).foreach { row => println(presentation(row)) }
   } // session

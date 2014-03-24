@@ -8,9 +8,8 @@ import scala.slick.jdbc.StaticQuery.u
 
 class TopNrankPureSLICKSuite extends WordSpec {
   import TopNrankPureSLICKSuite._
-  val allQueryCompiled = Compiled(TopNrankPureSLICK.allQuery(_)) // This forces the parameter must be Column[Int]      
 
-  implicit var session = db.createSession
+  private implicit var session = db.createSession
 
   "The Emp table" when {
     "totally filled with default context" should {
@@ -18,7 +17,7 @@ class TopNrankPureSLICKSuite extends WordSpec {
         assert(TopNrankPureSLICK.employees.length.run === Emp.testContent.size)
     }
 
-    val ist = allQueryCompiled(3).run
+    val ist = TopNrankPureSLICK.allQueryCompiled(3).run
 
     "the query is runned" should {
       "have the first row matched with expected value" in
@@ -119,7 +118,7 @@ object TopNrankPureSLICKSuite {
     "        E27002     David Motsinger 19250,00   3",
     "  13 Employees are listed.")
 
-  // Create a connection (called a "session") to an in-memory H2 database
+  // Create a connection (called a "session") to  H2 database
   // NO autocommit !
   db.withTransaction {
     implicit session =>
@@ -127,8 +126,8 @@ object TopNrankPureSLICKSuite {
 
       //if (tables.map(_.name.name).contains(Emp.TABLENAME)) println("Emp exists, will be rebuild.")
 
-      //import scala.slick.jdbc.StaticQuery.interpolation
-      // sql"drop table if exists ${Emp.TABLENAME}".as[String].execute // Doesn't work
+      import scala.slick.jdbc.StaticQuery.interpolation
+      //sqlu"drop table if exists $Emp.TABLENAME".execute // Doesn't work
       (u + s"drop table if exists ${Emp.TABLENAME}").execute
 
       TopNrankPureSLICK.createAndFillEmp(session)

@@ -85,7 +85,7 @@ trait TopNrankPureSLICKtrait {
     employees.map {
       row =>
         (MainSection.id,
-          row.id,row.name,row.deptId, row.salary,
+          row.id, row.name, row.deptId, row.salary,
           countColleaguesHasMoreOrSame(row.id), /*a.k.a. rank*/
           countSalaryTies(row.deptId, row.salary))
     }.filter(_._6 /*In fact countColleaguesHasMoreOrSame*/ <= topNc)
@@ -109,4 +109,8 @@ trait TopNrankPureSLICKtrait {
       .sortBy(_._5.desc.nullsLast) // salary
       .sortBy(_._1) //section
       .sortBy(_._4.nullsLast) //deptId
+
+  // Prepare the composed query 
+  val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
+  // Test generated SQL   println(allQueryCompiled(topN).selectStatement)
 }
