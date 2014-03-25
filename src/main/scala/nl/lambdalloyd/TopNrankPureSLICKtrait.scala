@@ -7,7 +7,6 @@ trait TopNrankPureSLICKtrait {
 
   // The query interface for the Emp and H2 provided dual table
   val employees = TableQuery[Emp]
-  val dual = TableQuery[Dual]
 
   def createAndFillEmp(implicit session: Session) {
     // Create the schema
@@ -30,15 +29,15 @@ trait TopNrankPureSLICKtrait {
    *  Yields to "Report N ranks for each department."
    */
   def headLineQuery(topNo: Column[Int]) =
-    dual.map { _ => (HeadLine.id, "", "", Option("0"), Option(0.0), 0, topNo) }
-
+    Query(HeadLine.id, "", "", Option("0"), Option(0.0), 0, topNo) 
+    
   /** The second part of the union all query
    *  Summarize the total table
    */
-  def totSummaryQuery = dual.map(c => (TotSummary.id, "", "", Option("0"),
+  def totSummaryQuery = Query(TotSummary.id, "", "", Option("0"),
     employees.map(_.salary).avg,
     employees.map(_.deptId).countDistinct,
-    employees.map(_.id).length))
+    employees.map(_.id).length)
 
   /** The third part of the union all query
    *  Separator line between departments
@@ -92,9 +91,9 @@ trait TopNrankPureSLICKtrait {
   } // mainQuery
 
   //** The last part of the union all query*/
-  def bottomLineQuery(topNo: Column[Int]) = TableQuery[Dual].map(c =>
-    (BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None") mend is None
-      Option(0.0), 0, mainQuery(topNo).length)) // to force a last place is sorting.
+  def bottomLineQuery(topNo: Column[Int]) =
+    Query(BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None") mend is None
+      Option(0.0), 0, mainQuery(topNo).length) // to force a last place is sorting.
 
   /** Compose the query with above queries and union all's*/
   def allQuery(topN0: Column[Int]) =
@@ -112,5 +111,5 @@ trait TopNrankPureSLICKtrait {
 
   // Prepare the composed query 
   val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
-  // Test generated SQL   println(allQueryCompiled(topN).selectStatement)
+  // Test generated SQL     println(allQueryCompiled(topN).selectStatement)
 }

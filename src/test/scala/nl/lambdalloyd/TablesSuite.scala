@@ -10,7 +10,6 @@ class TablesSuite extends FunSuite with BeforeAndAfter {
     driver = "org.h2.Driver")
 
   val employees = TableQuery[Emp]
-  val dual = TableQuery[Dual]
 
   implicit var session: Session = _
 
@@ -24,11 +23,6 @@ class TablesSuite extends FunSuite with BeforeAndAfter {
 
   before {
     session = db.createSession
-  }
-
-  test("Dual is present and OK") {
-    val rows = dual.run.size
-    assert(rows === 1)
   }
 
   test("Creating the schema works") {
