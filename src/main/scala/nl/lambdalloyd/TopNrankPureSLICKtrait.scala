@@ -1,19 +1,26 @@
 package nl.lambdalloyd
 
-import scala.slick.driver.H2Driver.simple._
+//import scala.slick.driver.H2Driver.simple._
+import com.typesafe.slick.driver.oracle.OracleDriver.simple._
+import scala.slick.jdbc.meta.MTable
 
 trait TopNrankPureSLICKtrait {
+  val schema = "HR"
   val topN = 3 // Number of ranking salaries.
 
   // The query interface for the Emp and H2 provided dual table
   val employees = TableQuery[Emp]
 
-  def createAndFillEmp(implicit session: Session) {
-    // Create the schema
-    employees.ddl.create
-    session.withTransaction {
-      // Fill the database, commit work if success
-      employees ++= Emp.testContent
+  def conditionalCreateAndFillEmp(implicit session: Session) {
+    val tables = MTable.getTables(None, Option(schema), Option(Emp.TABLENAME), Option(Seq(("TABLE"))))
+
+    if (tables.list.size != 1) {
+      // Create the schema conditional
+      employees.ddl.create
+      session.withTransaction {
+        // Fill the database, commit work if success
+        employees ++= Emp.testContent
+      }
     }
   }
 
@@ -29,12 +36,12 @@ trait TopNrankPureSLICKtrait {
    *  Yields to "Report N ranks for each department."
    */
   def headLineQuery(topNo: Column[Int]) =
-    Query(HeadLine.id, "", "", Option("0"), Option(0.0), 0, topNo) 
-    
+    Query(HeadLine.id, "", "", Option(" "), Option(0.0), 0, topNo)
+
   /** The second part of the union all query
    *  Summarize the total table
    */
-  def totSummaryQuery = Query(TotSummary.id, "", "", Option("0"),
+  def totSummaryQuery = Query(TotSummary.id, "", "", Option(" "),
     employees.map(_.salary).avg,
     employees.map(_.deptId).countDistinct,
     employees.map(_.id).length)
@@ -104,10 +111,26 @@ trait TopNrankPureSLICKtrait {
       ++ depColNamesQuery
       ++ depColLineal
       ++ mainQuery(topN0)
-      ++ bottomLineQuery(topN0)) // Sort based on the following columns
-      .sortBy(_._5.desc.nullsLast) // salary
-      .sortBy(_._1) //section
-      .sortBy(_._4.nullsLast) //deptId
+      ++ bottomLineQuery(topN0)) // Sort the following columns
+      .sortBy(_._5.desc.nullsLast) // salary 1
+      .sortBy(_._1) //section 2
+      .sortBy(_._4.nullsLast) //deptId 3
+  //      .sortBy(_._1) //section 2
+  //      .sortBy(_._4.nullsLast) //deptId 3
+  //      .sortBy(_._5.desc.nullsLast) // salary 1
+  //        .sortBy(_._4.nullsLast) //deptId 3
+  //        .sortBy(_._5.desc.nullsLast) // salary 1
+  //        .sortBy(_._1) //section 2
+  //        .sortBy(_._4.nullsLast) //deptId 3
+  //        .sortBy(_._1) //section 2
+  //        .sortBy(_._5.desc.nullsLast) // salary 1
+
+  //        .sortBy(_._1) //section 2
+  //        .sortBy(_._5.desc.nullsLast) // salary 1
+  //        .sortBy(_._4.nullsLast) //deptId 3
+  //        .sortBy(_._5.desc.nullsLast) // salary 1 
+  //        .sortBy(_._4.nullsLast) //deptId 3
+  //        .sortBy(_._1) //section 2
 
   // Prepare the composed query 
   val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]

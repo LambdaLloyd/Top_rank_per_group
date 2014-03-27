@@ -1,8 +1,10 @@
 package nl.lambdalloyd
 
-import scala.slick.driver.H2Driver.simple._
+//import scala.slick.driver.H2Driver.simple._
+import com.typesafe.slick.driver.oracle.OracleDriver.simple._
+//import com.typesafe.slick.driver.oracle.OracleDriver.backend.Database
 
-import slick.driver.H2Driver.backend.Database
+//import slick.driver.H2Driver.backend.Database
 
 /** In pure SLICK, find the top-n salaries in each department, where n is provided as a parameter.
  *
@@ -57,12 +59,14 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
 
   // Create a connection (called a "session") to an in-memory H2 database
   // NO autocommit and some options to consider
-  Database.forURL("jdbc:h2:mem:hello", driver = "org.h2.Driver").withTransaction {
-    implicit session =>
+  //Database.forURL("jdbc:h2:mem:hello", driver = "org.h2.Driver").withTransaction {
+  Database.forURL("jdbc:oracle:thin:@//localhost:1521/LAB0",
+    Map("user" -> "hr", "password" -> "hr")).withTransaction {
+      implicit session =>
 
-      createAndFillEmp(session)
+        conditionalCreateAndFillEmp(session)
 
-      // Execute the precompiled query.
-      allQueryCompiled(topN).foreach { row => println(presentation(row)) }
-  } // session
+        // Execute the precompiled query.
+        allQueryCompiled(topN).foreach { row => println(presentation(row)) }
+    } // session
 } // TopNrankPureSLICK

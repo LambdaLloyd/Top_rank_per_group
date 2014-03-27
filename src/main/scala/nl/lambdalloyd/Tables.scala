@@ -1,6 +1,7 @@
 package nl.lambdalloyd
 
-import scala.slick.driver.H2Driver.simple._
+//import scala.slick.driver.H2Driver.simple._
+import com.typesafe.slick.driver.oracle.OracleDriver.simple._
 
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
 class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, Emp.TABLENAME) {
