@@ -1,7 +1,6 @@
 package nl.lambdalloyd
 
-//import scala.slick.driver.H2Driver.simple._
-import com.typesafe.slick.driver.oracle.OracleDriver.simple._
+import nl.lambdalloyd.PortableDriver.simple._
 
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
 class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, Emp.TABLENAME) {
@@ -15,6 +14,8 @@ class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double
 }
 
 object Emp {
+  val schema = "HR"
+
   val TABLENAME = "EMP"
 
   def testContent: Seq[(String, String, Option[String], Option[Double])] =
@@ -34,4 +35,23 @@ object Emp {
       ("E16398", "Timothy Grove", Option("D190"), Option(29900.0)),
       ("E16399", "Timothy Grave", Option("D190"), Option(29900.0)),
       ("E16400", "Timothy Grive", Option("D190"), Option(29900.0)))
+
+  // The query interface for the Emp and H2 provided dual table
+  val employees = TableQuery[Emp]
+
+  def conditionalCreateAndFillEmp(implicit session: Session) {
+    import scala.slick.jdbc.meta.MTable
+
+    val tables = MTable.getTables(None, Option(schema), Option(Emp.TABLENAME), Option(Seq(("TABLE"))))
+
+    if (tables.list.size != 1) {
+      println(TABLENAME + " doesn't exists so will be created.")
+      // Create the schema conditional
+      employees.ddl.create
+      // Fill the database, commit work if success
+      session.withTransaction {
+        employees ++= Emp.testContent
+      }
+    }
+  }
 }

@@ -1,28 +1,9 @@
 package nl.lambdalloyd
 
-//import scala.slick.driver.H2Driver.simple._
-import com.typesafe.slick.driver.oracle.OracleDriver.simple._
-import scala.slick.jdbc.meta.MTable
+import nl.lambdalloyd.PortableDriver.simple._
 
 trait TopNrankPureSLICKtrait {
-  val schema = "HR"
   val topN = 3 // Number of ranking salaries.
-
-  // The query interface for the Emp and H2 provided dual table
-  val employees = TableQuery[Emp]
-
-  def conditionalCreateAndFillEmp(implicit session: Session) {
-    val tables = MTable.getTables(None, Option(schema), Option(Emp.TABLENAME), Option(Seq(("TABLE"))))
-
-    if (tables.list.size != 1) {
-      // Create the schema conditional
-      employees.ddl.create
-      session.withTransaction {
-        // Fill the database, commit work if success
-        employees ++= Emp.testContent
-      }
-    }
-  }
 
   // Enumerates the sections
   object Sections extends Enumeration {
@@ -42,33 +23,33 @@ trait TopNrankPureSLICKtrait {
    *  Summarize the total table
    */
   def totSummaryQuery = Query(TotSummary.id, "", "", Option(" "),
-    employees.map(_.salary).avg,
-    employees.map(_.deptId).countDistinct,
-    employees.map(_.id).length)
+    Emp.employees.map(_.salary).avg,
+    Emp.employees.map(_.deptId).countDistinct,
+    Emp.employees.map(_.id).length)
 
   /** The third part of the union all query
    *  Separator line between departments
    *  Note: dept variable is only for sorting purpose
    */
-  def depSepaQuery = employees.groupBy(_.deptId)
+  def depSepaQuery = Emp.employees.groupBy(_.deptId)
     .map { case (dept, _) => (DeptSeparator.id, "", "", dept, Option(0.0), 0, 0) }
 
   /** The fourth part of the union all query
    *  Summarize the department
    */
-  def depSummaryQuery = employees.groupBy(_.deptId)
+  def depSummaryQuery = Emp.employees.groupBy(_.deptId)
     .map { case (dept, css) => (DeptSummary.id, "", "", dept, css.map(_.salary).avg, 0, css.length) }
 
   /** The sixth part of the union all query
    *  The column names are printed.
    */
-  def depColNamesQuery = employees.groupBy(_.deptId)
+  def depColNamesQuery = Emp.employees.groupBy(_.deptId)
     .map { case (dept, _) => (DeptColNames.id, "", "", dept, Option(0.0), 0, 0) }
 
   /** The seventh part of the union all query
    *  A ruler to format the table
    */
-  def depColLineal = employees.groupBy(_.deptId)
+  def depColLineal = Emp.employees.groupBy(_.deptId)
     .map { case (dept, _) => (DeptColLineal.id, "", "", dept, Option(0.0), 0, 0) }
 
   /** The main part of the union all query - here is the beef
@@ -78,7 +59,7 @@ trait TopNrankPureSLICKtrait {
   def mainQuery(topNc: Column[Int]) = {
     def countColleaguesHasMoreOrSame(empId: Column[String]) = (
       for {
-        (e3, e4) <- employees innerJoin employees
+        (e3, e4) <- Emp.employees innerJoin Emp.employees
         if (empId === e3.id) && (e3.deptId === e4.deptId) && (e3.salary <= e4.salary)
       } yield (e4.salary)).countDistinct
 
@@ -86,9 +67,9 @@ trait TopNrankPureSLICKtrait {
      *  For checking ties, a.k.a ex aequo.
      */
     def countSalaryTies(deptId: Column[Option[String]], salary: Column[Option[Double]]) =
-      employees.filter(e1 => (deptId === e1.deptId) && (salary === e1.salary)).length
+      Emp.employees.filter(e1 => (deptId === e1.deptId) && (salary === e1.salary)).length
 
-    employees.map {
+    Emp.employees.map {
       row =>
         (MainSection.id,
           row.id, row.name, row.deptId, row.salary,
@@ -115,22 +96,6 @@ trait TopNrankPureSLICKtrait {
       .sortBy(_._5.desc.nullsLast) // salary 1
       .sortBy(_._1) //section 2
       .sortBy(_._4.nullsLast) //deptId 3
-  //      .sortBy(_._1) //section 2
-  //      .sortBy(_._4.nullsLast) //deptId 3
-  //      .sortBy(_._5.desc.nullsLast) // salary 1
-  //        .sortBy(_._4.nullsLast) //deptId 3
-  //        .sortBy(_._5.desc.nullsLast) // salary 1
-  //        .sortBy(_._1) //section 2
-  //        .sortBy(_._4.nullsLast) //deptId 3
-  //        .sortBy(_._1) //section 2
-  //        .sortBy(_._5.desc.nullsLast) // salary 1
-
-  //        .sortBy(_._1) //section 2
-  //        .sortBy(_._5.desc.nullsLast) // salary 1
-  //        .sortBy(_._4.nullsLast) //deptId 3
-  //        .sortBy(_._5.desc.nullsLast) // salary 1 
-  //        .sortBy(_._4.nullsLast) //deptId 3
-  //        .sortBy(_._1) //section 2
 
   // Prepare the composed query 
   val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
