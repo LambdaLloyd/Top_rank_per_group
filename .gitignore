@@ -2,10 +2,12 @@
 ## Eclipse
 #################
 
+*.class
 *.pydevproject
 .project
 .metadata
 bin/
+/bin
 tmp/
 *.tmp
 *.bak
@@ -27,6 +29,11 @@ local.properties
 
 # PDT-specific
 .buildpath
+
+# SBT-specific
+/target/
+/project/target/
+*.cache
 
 
 #################
@@ -213,4 +220,3 @@ pip-log.txt
 
 #Mr Developer
 .mr.developer.cfg
-/bin

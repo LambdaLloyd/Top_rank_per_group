@@ -5,9 +5,7 @@ import scala.slick.jdbc.meta._
 
 class TablesSuite extends FunSuite with BeforeAndAfter {
 
-  var db = Database.forURL(
-    "jdbc:h2:mem:test1;AUTOCOMMIT=OFF;WRITE_DELAY=300;MVCC=TRUE;LOCK_MODE=0;FILE_LOCK=SOCKET",
-    driver = "org.h2.Driver")
+  db
 
   val employees = TableQuery[Emp]
 

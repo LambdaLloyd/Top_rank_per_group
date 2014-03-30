@@ -75,7 +75,7 @@ trait TopNrankPureSLICKtrait {
           row.id, row.name, row.deptId, row.salary,
           countColleaguesHasMoreOrSame(row.id), /*a.k.a. rank*/
           countSalaryTies(row.deptId, row.salary))
-    }.filter(_._6 /*In fact countColleaguesHasMoreOrSame*/ <= topNc)
+    }.filter(_._6 /*In fact countColleaguesHasMoreOrSame(row.id), a.k.a. rank*/ <= topNc)
   } // mainQuery
 
   //** The last part of the union all query*/
@@ -99,5 +99,9 @@ trait TopNrankPureSLICKtrait {
 
   // Prepare the composed query 
   val allQueryCompiled = Compiled(allQuery(_)) // This forces the parameter must be Column[Int]
-  // Test generated SQL     println(allQueryCompiled(topN).selectStatement)
+  // Test generated SQL     
+  if (System.getProperty("printSQL").toUpperCase() match {
+    case "TRUE" | "T" | "YES" | "Y" => true
+    case _                          => false
+  }) println(allQueryCompiled(topN).selectStatement)
 }

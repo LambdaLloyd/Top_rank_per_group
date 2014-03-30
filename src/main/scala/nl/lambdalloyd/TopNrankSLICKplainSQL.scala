@@ -13,7 +13,7 @@ object TopNrankSLICKplainSQL extends App {
     implicit session =>
 
       // Conditional create fill the table and commit if succeeds 
-        Emp.conditionalCreateAndFillEmp(session)
+      Emp.conditionalCreateAndFillEmp(session)
 
       /* Manual SQL / String Interpolation */
       // Required import for the sql interpolator

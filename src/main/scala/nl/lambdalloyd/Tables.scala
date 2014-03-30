@@ -45,7 +45,7 @@ object Emp {
     val tables = MTable.getTables(None, Option(schema), Option(Emp.TABLENAME), Option(Seq(("TABLE"))))
 
     if (tables.list.size != 1) {
-      println(TABLENAME + " doesn't exists so will be created.")
+      println(TABLENAME + " doesn't exists, so it will be created and filled.")
       // Create the schema conditional
       employees.ddl.create
       // Fill the database, commit work if success
