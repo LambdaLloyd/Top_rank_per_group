@@ -1,12 +1,12 @@
 package nl.lambdalloyd
 
-import nl.lambdalloyd.PortableDriver.simple._
+import PortableDriver.simple._
 
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
 class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, Emp.TABLENAME) {
   def id: Column[String] = column("EMP_ID", O.PrimaryKey) // This is the primary key column
-  def name: Column[String] = column("EMP_NAME", O.NotNull)
-  def deptId: Column[Option[String]] = column("DEPT_ID", O.NotNull)
+  def name: Column[String] = column("EMP_NAME")
+  def deptId: Column[Option[String]] = column("DEPT_ID")
   def salary: Column[Option[Double]] = column("SALARY", O.Nullable)
 
   // Every table needs a * projection with the same type as the table's type parameter

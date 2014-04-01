@@ -6,6 +6,11 @@ import com.typesafe.slick.driver.oracle.OracleDriver
 object PortableDriver {
   val simple = profile.simple
 
+  def stringToBoolean(s: String) = s match {
+    case "TRUE" | "T" | "YES" | "Y" => true
+    case _                          => false
+  }
+
   //System.setProperty("database", "oracle")
 
   lazy val (profile: ExtendedProfile, db: scala.slick.jdbc.JdbcBackend#DatabaseDef) =
@@ -20,5 +25,10 @@ object PortableDriver {
           "jdbc:h2:mem:test1;AUTOCOMMIT=OFF;WRITE_DELAY=300;MVCC=TRUE;LOCK_MODE=0;FILE_LOCK=SOCKET",
           driver = "org.h2.Driver"))
     }
-  println(profile.simple.getClass().toString().takeWhile(_ != '$').reverse.takeWhile(_ !='.').reverse)
+
+  if (stringToBoolean(System.getProperty("verbose"))) {
+    val driverName =
+      profile.simple.getClass().toString().takeWhile(_ != '$').reverse.takeWhile(_ != '.').reverse
+    println(s"Driver is: $driverName")
+  }
 }
