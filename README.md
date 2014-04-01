@@ -29,9 +29,9 @@ Department: D190, pop:  4.Avg Salary:  36675,00
    Employee ID       Employee name   SalaryRank
 -------------+-------------------+--------+---+
         E10001          Kim Arlich 57000,00   1
-        E16398       Timothy Grove 29900,00  T2
         E16399       Timothy Grave 29900,00  T2
         E16400       Timothy Grive 29900,00  T2
+        E16398       Timothy Grove 29900,00  T2
 -
 Department: D202, pop:  4.Avg Salary:  28637,50
    Employee ID       Employee name   SalaryRank
