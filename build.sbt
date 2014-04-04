@@ -6,6 +6,10 @@ scalaVersion := "2.10.3"
 
 mainClass in Compile := Some("nl.lambdalloyd.TopNrankPureSLICK")
 
+val additionalClasses = file("C:/Users/FransAdm/GitHub repository/Top_rank_per_group/lib/ojdbc7.jar")
+
+unmanagedClasspath in Test += additionalClasses
+
 libraryDependencies ++= List(
   "com.typesafe.slick" %% "slick" % "2.0.1",
   "org.slf4j" % "slf4j-nop" % "1.6.4",

@@ -169,12 +169,12 @@ object TopNrankSLICKplainSql extends App {
                             from EMP EMP0) COUNTCOLLEAGUESHASMOREORSAME
                    where rank <= $topN))
           order by DEPT_ID nulls last, SECTION, SALARY desc nulls last, EMP_NAME""".as[String]
-  
+
   PortableDriver.db.withTransaction {
     implicit session =>
 
       // Conditional create fill the table and commit if succeeds 
-      Emp.conditionalCreateAndFillEmp(session)
+      Emp.conditionalCreateAndFillEmp(session, Emp.testContent)
 
       // Execute the query
       plainQuery.foreach(println)

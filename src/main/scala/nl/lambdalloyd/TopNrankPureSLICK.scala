@@ -1,5 +1,4 @@
 package nl.lambdalloyd
-
 import PortableDriver.simple._
 
 /** In pure SLICK, find the top-n salaries in each department, where n is provided as a parameter.
@@ -18,16 +17,16 @@ import PortableDriver.simple._
  *  The rows are on a row by row basis formatted by a Scala match case construct
  *  according to the section tag. The resulting string is finally printed.
  *
- *  @version			0.9	2014-03-22
+ *  @version			0.91	2014-04-04
  *  @author		Frans W. van den Berg
  */
 object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
   // The main application, first definition below 
 
   /** Convert a row represented as a tuple in a formatted string.*/
-  private def presentation(compoundRow: (Int, String, String, Option[String], Option[Double], Int, Int)): String = {
-    def fNullable(money: Option[Double]) =
-      if (money.isEmpty) "null" else f"${money.getOrElse(0.0)}%9.2f"
+  private def presentation(compoundRow: (Int, String, String, Option[String], Option[BigDecimal], Int, Int)) = {
+    def fNullable(money: Option[BigDecimal]) =
+      if (money.isEmpty) "null" else f"${money.getOrElse(BigDecimal("0"))}%9.2f"
 
     import TopNrankPureSLICK.{ Sections => S }
     compoundRow match { // Formatting accordingly to the section tag "st"
@@ -37,7 +36,7 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
         f"Tot.$count%3d employees in$rank%2d deps.Avg. sal.:${fNullable(salary)}%9s"
       case (st, _, _, _, _, _, _) if (st == S.DeptSeparator.id) => "-"
       case (id, _, _, dept, salary, _, count) if (id == S.DeptSummary.id) =>
-        f"Department:${dept.get}%5s, pop:$count%3d.Avg Salary:${salary.getOrElse(.0)}%10.2f"
+        f"Department:${dept.get}%5s, pop:$count%3d.Avg Salary:${fNullable(salary)}%10s"
       case (st, _, _, _, _, _, _) if (st == S.DeptColNames.id) =>
         "   Employee ID       Employee name   SalaryRank"
       case (st, _, _, _, _, _, _) if (st == S.DeptColLineal.id) =>
@@ -57,7 +56,10 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
   PortableDriver.db.withTransaction {
     implicit session =>
 
-      Emp.conditionalCreateAndFillEmp(session)
+      Emp.conditionalCreateAndFillEmp(session, Emp.testContent)
+      // Test generated SQL  
+      if (PortableDriver.stringToBoolean(System.getProperty("printSQL")))
+        println(allQueryCompiled(topN).selectStatement)
 
       // Execute the precompiled query.
       allQueryCompiled(topN).foreach { row => println(presentation(row)) }

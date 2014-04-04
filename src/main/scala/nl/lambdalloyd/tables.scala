@@ -3,22 +3,20 @@ package nl.lambdalloyd
 import PortableDriver.simple._
 
 // An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
-class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[Double])](tag, Emp.TABLENAME) {
+class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[BigDecimal])](tag, Emp.TABLENAME) {
   def id: Column[String] = column("EMP_ID", O.PrimaryKey) // This is the primary key column
   def name: Column[String] = column("EMP_NAME")
   def deptId: Column[Option[String]] = column("DEPT_ID")
-  def salary: Column[Option[Double]] = column("SALARY", O.Nullable)
+  def salary: Column[Option[BigDecimal]] = column("SALARY", O.Nullable)
 
   // Every table needs a * projection with the same type as the table's type parameter
   def * = (id, name, deptId, salary)
 }
 
 object Emp {
-  val schema = "HR"
-
   val TABLENAME = "EMP"
 
-  def testContent: Seq[(String, String, Option[String], Option[Double])] =
+  def testContent: Seq[(String, String, Option[String], Option[BigDecimal])] =
     Seq(("E10297", "Tyler Bennett", Option("D101"), Option(32000)),
       ("E21437", "John Rappl", Option("D050"), Option(47000)),
       ("E21438", "trainee", Option("D050"), None),
@@ -39,19 +37,39 @@ object Emp {
   // The query interface for the Emp and H2 provided dual table
   val employees = TableQuery[Emp]
 
-  def conditionalCreateAndFillEmp(implicit session: Session) {
-    import scala.slick.jdbc.meta.MTable
+  import scala.slick.jdbc.meta.MTable
 
-    val tables = MTable.getTables(None, Option(schema), Option(Emp.TABLENAME), Option(Seq(("TABLE"))))
+  def existsEmpTable(implicit session: Session) =
+    MTable.getTables(None, PortableDriver.schema, Option(Emp.TABLENAME), Option(Seq(("TABLE")))).list.size == 1
 
-    if (tables.list.size != 1) {
-      println(TABLENAME + " doesn't exists, so it will be created and filled.")
+  def insertContent(implicit session: Session,
+                    freshContent: Seq[(String, String, Option[String], Option[BigDecimal])]): Option[Int] = {
+    employees ++= freshContent
+  }
+
+  def conditionalCreateAndFillEmp(
+    implicit session: Session,
+    freshContent: Seq[(String, String, Option[String], Option[BigDecimal])] = Seq()): Int = {
+
+    if (!existsEmpTable) {
+      println(TABLENAME + " doesn't exists, so it will be created and eventually filled.")
       // Create the schema conditional
       employees.ddl.create
-      // Fill the database, commit work if success
-      session.withTransaction {
-        employees ++= Emp.testContent
-      }
-    }
-  }
+      if (!freshContent.isEmpty)
+        // Fill the database, commit work if success
+        session.withTransaction {
+          insertContent(session, Emp.testContent).getOrElse(0)
+        }
+      else 0
+    } else 0
+  } // def conditionalCreateAndFillEmp
+
 }
+
+object Databases extends Enumeration {
+
+  //val Ora12 = Value("oracle")
+
+  val Derby, H2mem, H2svr, HSQLD, Hyper, I_DB2, MsSQL, MySQL, Ora12, PSSQL, SQLit = Value
+}
+

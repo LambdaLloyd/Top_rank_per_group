@@ -5,21 +5,23 @@ import PortableDriver.simple._
 trait TopNrankPureSLICKtrait {
   protected val topN = 3 // Number of ranking salaries.
 
+  val decimalFiller = Option(BigDecimal("0"))
+
   // Enumerates the sections
-  final object Sections extends Enumeration {
-    final val HeadLine, TotSummary, DeptSeparator, DeptSummary, //
+  object Sections extends Enumeration {
+    val HeadLine, TotSummary, DeptSeparator, DeptSummary, //
     DeptColNames, DeptColLineal, MainSection, BottomLine = Value
   }
 
   /** Compose the query with above queries and union all's*/
   protected def allQuery(topN0: Column[Int]) = {
-  import TopNrankPureSLICK.{ Sections => S }
+    import TopNrankPureSLICK.{ Sections => S }
 
     /** The first part of the union all query
      *  Yields to "Report N ranks for each department."
      */
     def headLineQuery(topNo: Column[Int]) =
-      Query(S.HeadLine.id, "", "", Option(" "), Option(0.0), 0, topNo)
+      Query(S.HeadLine.id, "", "", Option(" "), decimalFiller, 0, topNo)
 
     /** The second part of the union all query
      *  Summarize the total table
@@ -34,7 +36,7 @@ trait TopNrankPureSLICKtrait {
      *  Note: dept variable is only for sorting purpose
      */
     def depSepaQuery = Emp.employees.groupBy(_.deptId)
-      .map { case (dept, _) => (S.DeptSeparator.id, "", "", dept, Option(0.0), 0, 0) }
+      .map { case (dept, _) => (S.DeptSeparator.id, "", "", dept, decimalFiller, 0, 0) }
 
     /** The fourth part of the union all query
      *  Summarize the department
@@ -46,13 +48,13 @@ trait TopNrankPureSLICKtrait {
      *  The column names are printed.
      */
     def depColNamesQuery = Emp.employees.groupBy(_.deptId)
-      .map { case (dept, _) => (S.DeptColNames.id, "", "", dept, Option(0.0), 0, 0) }
+      .map { case (dept, _) => (S.DeptColNames.id, "", "", dept, decimalFiller, 0, 0) }
 
     /** The seventh part of the union all query
      *  A ruler to format the table
      */
     def depColLineal = Emp.employees.groupBy(_.deptId)
-      .map { case (dept, _) => (S.DeptColLineal.id, "", "", dept, Option(0.0), 0, 0) }
+      .map { case (dept, _) => (S.DeptColLineal.id, "", "", dept, decimalFiller, 0, 0) }
 
     /** The main part of the union all query - here is the beef
      *  To display the top employees by:
@@ -68,7 +70,7 @@ trait TopNrankPureSLICKtrait {
       /** Returns the number of equal salaries in a department. Normally 1.
        *  For checking ties, a.k.a ex aequo.
        */
-      def countSalaryTies(deptId: Column[Option[String]], salary: Column[Option[Double]]) =
+      def countSalaryTies(deptId: Column[Option[String]], salary: Column[Option[BigDecimal]]) =
         Emp.employees.filter(e1 => (deptId === e1.deptId) && (salary === e1.salary)).length
 
       Emp.employees.map {
@@ -83,7 +85,7 @@ trait TopNrankPureSLICKtrait {
     //** The last part of the union all query*/
     def bottomLineQuery(topNo: Column[Int]) =
       Query(S.BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None") mend is None
-        Option(0.0), 0, mainQuery(topNo).length) // to force a last place is sorting.
+        decimalFiller, 0, mainQuery(topNo).length) // to force a last place is sorting.
 
     (headLineQuery(topN0)
       ++ totSummaryQuery
@@ -100,8 +102,5 @@ trait TopNrankPureSLICKtrait {
   } // def allQuery
 
   // Prepare the composed query 
-  protected lazy val allQueryCompiled = Compiled(allQuery _) // This forces the parameter must be Column[Int]
-  // Test generated SQL     
-  if (PortableDriver.stringToBoolean(System.getProperty("printSQL")))
-    println(allQueryCompiled(topN).selectStatement)
+  protected lazy val allQueryCompiled = Compiled(allQuery _) // This forces the parameter to be Column[Int]
 }
