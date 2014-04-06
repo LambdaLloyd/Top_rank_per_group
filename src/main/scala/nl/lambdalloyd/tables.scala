@@ -66,10 +66,7 @@ object Emp {
 
 }
 
-object Databases extends Enumeration {
-
-  //val Ora12 = Value("oracle")
-
-  val Derby, H2mem, H2svr, HSQLD, Hyper, I_DB2, MsSQL, MySQL, Ora12, PSSQL, SQLit = Value
+/*object Databases extends Enumeration {
+  val Derby, H2emb, H2svr, HSQLD, Hyper, I_DB2, MsSQL, MySQL, Ora12, PSSQL, SQLit = Value
 }
-
+*/

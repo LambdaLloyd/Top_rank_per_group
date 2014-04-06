@@ -9,6 +9,11 @@ object TopNrankSLICKplainSql extends App {
   // The query interface for the Emp table
   val employees = TableQuery[Emp]
 
+  def printJvmBanner() {
+    println(s"${System.getProperty("java.runtime.name")} (build ${System.getProperty("java.runtime.version")})")
+    println(s"${System.getProperty("java.vm.name")} (build ${System.getProperty("java.vm.version")}, ${System.getProperty("java.vm.info")})\n")
+  }
+
   /* Manual SQL / String Interpolation */
   // Required import for the sql interpolator
   import scala.slick.jdbc.StaticQuery.interpolation
@@ -170,6 +175,9 @@ object TopNrankSLICKplainSql extends App {
                    where rank <= $topN))
           order by DEPT_ID nulls last, SECTION, SALARY desc nulls last, EMP_NAME""".as[String]
 
+  ////////////////////////// Program starts here //////////////////////////////
+
+  printJvmBanner()
   PortableDriver.db.withTransaction {
     implicit session =>
 

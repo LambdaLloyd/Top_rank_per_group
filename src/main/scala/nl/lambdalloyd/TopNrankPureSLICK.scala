@@ -51,7 +51,11 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
 
   ////////////////////////// Program starts here //////////////////////////////
 
-  // Create a connection (called a "session") to an in-memory H2 database
+  // Test generated SQL  
+  if (PortableDriver.stringToBoolean(System.getProperty("printSQL")))
+    println(allQueryCompiled(topN).selectStatement)
+
+  // Create a connection
   // NO autocommit and some options to consider
   PortableDriver.db.withTransaction {
     implicit session =>
@@ -63,5 +67,5 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
 
       // Execute the precompiled query.
       allQueryCompiled(topN).foreach { row => println(presentation(row)) }
-  } // session
+  } // withTransaction
 } // TopNrankPureSLICK

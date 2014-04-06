@@ -16,7 +16,7 @@ trait TablesTest extends FunSuite with BeforeAndAfter {
 
   test("Creating the schema works") {
 
-    info(s"Driver is: ${PortableDriver.driverName}")
+    info(s"Driver is: ${PortableDriver.driverName}, detected as ${PortableDriver.detector}")
     info(s"Try to create a table, so no (${Emp.conditionalCreateAndFillEmp(session)}) rows are added")
     assert(Emp.existsEmpTable)
   }
