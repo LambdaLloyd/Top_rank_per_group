@@ -4,7 +4,7 @@ Top rank per group
 Find the top N salaries in each department, where N is provided as a parameter.
 Inspired by [RosettaCode.org task](http://rosettacode.org/wiki/Top_rank_per_group).
 
-The case is expended with somebody with no (Null) salary and equal earning colleagues.
+This case is expanded to take somebody with no (Null) salary and equal earning colleagues.
 
 Sample output:
 ```

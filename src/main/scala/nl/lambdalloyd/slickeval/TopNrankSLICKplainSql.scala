@@ -1,25 +1,26 @@
-package nl.lambdalloyd
-import PortableDriver.simple._
+/** Top rank per group
+ *  ==================
+ *  Find the top N salaries in each department, where N is provided as a parameter.
+ *  Inspired by [RosettaCode.org task](http://rosettacode.org/wiki/Top_rank_per_group).
+ *  This case is expanded to take somebody with no (Null) salary and equal earning colleagues.
+ */
 
-// The main application
+package nl.lambdalloyd
+package slickeval
+
+import scala.slick.lifted.Compiled
+
+/** The main application*/
 object TopNrankSLICKplainSql extends App {
 
-  val topN = 3
-
-  // The query interface for the Emp table
-  val employees = TableQuery[Emp]
-
-  def printJvmBanner() {
-    println(s"${System.getProperty("java.runtime.name")} (build ${System.getProperty("java.runtime.version")})")
-    println(s"${System.getProperty("java.vm.name")} (build ${System.getProperty("java.vm.version")}, ${System.getProperty("java.vm.info")})\n")
-  }
+  private val topN = 3
 
   /* Manual SQL / String Interpolation */
   // Required import for the sql interpolator
   import scala.slick.jdbc.StaticQuery.interpolation
 
   // Construct a SQL statement manually with an interpolated value
-  val plainQuery = // First the bun
+  private def plainQuery = // First the bun
     sql"""select case SECTION
            when 0
            then
@@ -175,9 +176,16 @@ object TopNrankSLICKplainSql extends App {
                    where rank <= $topN))
           order by DEPT_ID nulls last, SECTION, SALARY desc nulls last, EMP_NAME""".as[String]
 
-  ////////////////////////// Program starts here //////////////////////////////
+  ////////////////////////// Main program starts here //////////////////////////////
 
-  printJvmBanner()
+  Emp.printJvmBanner()
+
+  // Inspect generated SQL  
+  if (PortableDriver.stringToBoolean(System.getProperty("printSQL", ""))) {
+    println(plainQuery.getStatement)
+    println
+  }
+
   PortableDriver.db.withTransaction {
     implicit session =>
 

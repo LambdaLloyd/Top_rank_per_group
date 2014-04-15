@@ -1,9 +1,9 @@
 package nl.lambdalloyd
+package slickeval
 
 import PortableDriver.simple._
 
 trait TopNrankPureSLICKtrait {
-  protected val topN = 3 // Number of ranking salaries.
 
   val decimalFiller = Option(BigDecimal("0"))
 
@@ -86,6 +86,8 @@ trait TopNrankPureSLICKtrait {
     def bottomLineQuery(topNo: Column[Int]) =
       Query(S.BottomLine.id, "", "", Option(None + ""), // Work around, evaluates to Some("None") mend is None
         decimalFiller, 0, mainQuery(topNo).length) // to force a last place is sorting.
+
+    // Here the body of def allQuery producing an union with each section
 
     (headLineQuery(topN0)
       ++ totSummaryQuery

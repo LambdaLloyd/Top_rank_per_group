@@ -1,9 +1,13 @@
 package nl.lambdalloyd
+package slickeval
 
 import PortableDriver.simple._
 
-// An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department,
-class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[BigDecimal])](tag, Emp.TABLENAME) {
+/** Table Definition
+ *
+ *  An Employees table with 4 columns: Employee ID, Employee Name, Salary, Department
+ */
+class Emp(tag: Tag) extends Table[Emp.EmpRow](tag, Emp.TABLENAME) {
   def id: Column[String] = column("EMP_ID", O.PrimaryKey) // This is the primary key column
   def name: Column[String] = column("EMP_NAME")
   def deptId: Column[Option[String]] = column("DEPT_ID")
@@ -14,9 +18,12 @@ class Emp(tag: Tag) extends Table[(String, String, Option[String], Option[BigDec
 }
 
 object Emp {
+  type EmpRow = (String, String, Option[String], Option[BigDecimal])
+
   val TABLENAME = "EMP"
 
-  def testContent: Seq[(String, String, Option[String], Option[BigDecimal])] =
+  /** Returns initial content for testing*/
+  def testContent: Seq[EmpRow] =
     Seq(("E10297", "Tyler Bennett", Option("D101"), Option(32000)),
       ("E21437", "John Rappl", Option("D050"), Option(47000)),
       ("E21438", "trainee", Option("D050"), None),
@@ -34,7 +41,7 @@ object Emp {
       ("E16399", "Timothy Grave", Option("D190"), Option(29900.0)),
       ("E16400", "Timothy Grive", Option("D190"), Option(29900.0)))
 
-  // The query interface for the Emp and H2 provided dual table
+  // The query interface for the Emp
   val employees = TableQuery[Emp]
 
   import scala.slick.jdbc.meta.MTable
@@ -43,13 +50,13 @@ object Emp {
     MTable.getTables(None, PortableDriver.schema, Option(Emp.TABLENAME), Option(Seq(("TABLE")))).list.size == 1
 
   def insertContent(implicit session: Session,
-                    freshContent: Seq[(String, String, Option[String], Option[BigDecimal])]): Option[Int] = {
+                    freshContent: Seq[EmpRow]): Option[Int] = {
     employees ++= freshContent
   }
 
   def conditionalCreateAndFillEmp(
     implicit session: Session,
-    freshContent: Seq[(String, String, Option[String], Option[BigDecimal])] = Seq()): Int = {
+    freshContent: Seq[EmpRow] = Seq()): Int = {
 
     if (!existsEmpTable) {
       println(TABLENAME + " doesn't exists, so it will be created and eventually filled.")
@@ -64,9 +71,9 @@ object Emp {
     } else 0
   } // def conditionalCreateAndFillEmp
 
-}
+  def printJvmBanner() {
+    println(s"${System.getProperty("java.runtime.name")} (build ${System.getProperty("java.runtime.version")})")
+    println(s"${System.getProperty("java.vm.name")} (build ${System.getProperty("java.vm.version")}, ${System.getProperty("java.vm.info")})\n")
+  }
 
-/*object Databases extends Enumeration {
-  val Derby, H2emb, H2svr, HSQLD, Hyper, I_DB2, MsSQL, MySQL, Ora12, PSSQL, SQLit = Value
 }
-*/

@@ -1,4 +1,6 @@
 package nl.lambdalloyd
+package slickeval
+
 import org.scalatest._
 import PortableDriver.simple._
 

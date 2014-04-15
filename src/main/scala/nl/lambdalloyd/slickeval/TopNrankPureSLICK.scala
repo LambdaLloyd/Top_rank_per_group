@@ -1,4 +1,6 @@
 package nl.lambdalloyd
+package slickeval
+
 import PortableDriver.simple._
 
 /** In pure SLICK, find the top-n salaries in each department, where n is provided as a parameter.
@@ -22,6 +24,7 @@ import PortableDriver.simple._
  */
 object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
   // The main application, first definition below 
+  private val topN = 3 // Number of ranking salaries.
 
   /** Convert a row represented as a tuple in a formatted string.*/
   private def presentation(compoundRow: (Int, String, String, Option[String], Option[BigDecimal], Int, Int)) = {
@@ -51,8 +54,8 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
 
   ////////////////////////// Program starts here //////////////////////////////
 
-  // Test generated SQL  
-  if (PortableDriver.stringToBoolean(System.getProperty("printSQL")))
+  // Inspect generated SQL  
+  if (PortableDriver.stringToBoolean(System.getProperty("printSQL", "")))
     println(allQueryCompiled(topN).selectStatement)
 
   // Create a connection
@@ -61,9 +64,6 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
     implicit session =>
 
       Emp.conditionalCreateAndFillEmp(session, Emp.testContent)
-      // Test generated SQL  
-      if (PortableDriver.stringToBoolean(System.getProperty("printSQL")))
-        println(allQueryCompiled(topN).selectStatement)
 
       // Execute the precompiled query.
       allQueryCompiled(topN).foreach { row => println(presentation(row)) }
