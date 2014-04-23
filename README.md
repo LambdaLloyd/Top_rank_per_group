@@ -8,7 +8,7 @@ This case is expanded to take somebody with no (Null) salary and equal earning c
 
 Sample output:
 ```
-Report top  3 ranks for each department.
+{{{Report top  3 ranks for each department.
 Tot. 16 employees in 4 deps.Avg. sal.: 33336,67
 -
 Department: D050, pop:  3.Avg Salary:  34450,00
@@ -41,4 +41,5 @@ Department: D202, pop:  4.Avg Salary:  28637,50
         E27002     David Motsinger 19250,00   3
   13 Employees are listed.
 ```
+}}}
 

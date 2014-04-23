@@ -5,10 +5,10 @@ import PortableDriver.simple._
 
 trait TopNrankPureSLICKtrait {
 
-  val decimalFiller = Option(BigDecimal("0"))
+  protected val decimalFiller = Option(BigDecimal("0"))
 
-  // Enumerates the sections
-  object Sections extends Enumeration {
+  /** Enumerates the sections*/
+  protected object Sections extends Enumeration {
     val HeadLine, TotSummary, DeptSeparator, DeptSummary, //
     DeptColNames, DeptColLineal, MainSection, BottomLine = Value
   }

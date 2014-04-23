@@ -3,25 +3,6 @@ package slickeval
 
 import PortableDriver.simple._
 
-/** In pure SLICK, find the top-n salaries in each department, where n is provided as a parameter.
- *
- *  How it works:
- *  One composed query produces all the rows necessary for the output. The composed query is
- *  made of a union (union all) of queries mostly making a row per department. Two queries
- *  making aggregated data of the whole table to summarize the payroll. All rows are tagged
- *  by a section id in the first column.
- *  The core query of it produces a row per employee with the personal data by counting per
- *  employee the employees (and its self) who are earning the same or more in a department.
- *  This number of employees is the ranking number which is filtered to be less or equal to N.
- *  All rows are sorted in the database by department (if any), section header and in descending
- *  order the salaries (if any).
- *
- *  The rows are on a row by row basis formatted by a Scala match case construct
- *  according to the section tag. The resulting string is finally printed.
- *
- *  @version			0.91	2014-04-04
- *  @author		Frans W. van den Berg
- */
 object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
   // The main application, first definition below 
   private val topN = 3 // Number of ranking salaries.
@@ -55,8 +36,7 @@ object TopNrankPureSLICK extends App with TopNrankPureSLICKtrait {
   ////////////////////////// Program starts here //////////////////////////////
 
   // Inspect generated SQL  
-  if (PortableDriver.stringToBoolean(System.getProperty("printSQL", "")))
-    println(allQueryCompiled(topN).selectStatement)
+  if (scala.util.Properties.propOrFalse("printSQL")) println(allQueryCompiled(topN).selectStatement)
 
   // Create a connection
   // NO autocommit and some options to consider

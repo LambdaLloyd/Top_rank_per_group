@@ -18,9 +18,9 @@ class Emp(tag: Tag) extends Table[Emp.EmpRow](tag, Emp.TABLENAME) {
 }
 
 object Emp {
-  type EmpRow = (String, String, Option[String], Option[BigDecimal])
+  private type EmpRow = (String, String, Option[String], Option[BigDecimal])
 
-  val TABLENAME = "EMP"
+  private val TABLENAME = "EMP"
 
   /** Returns initial content for testing*/
   def testContent: Seq[EmpRow] =

@@ -1,14 +1,24 @@
-/** Top rank per group
- *  ==================
- *  Find the top N salaries in each department, where N is provided as a parameter.
- *  Inspired by [RosettaCode.org task](http://rosettacode.org/wiki/Top_rank_per_group).
- *  This case is expanded to take somebody with no (Null) salary and equal earning colleagues.
- */
-
 package nl.lambdalloyd
 package slickeval
 
-import scala.slick.lifted.Compiled
+/** Top rank per group
+ *  ==================
+ *
+ *  In plain SQL find the top N salaries in each department, where N is provided as a parameter.
+ *  Inspired by [RosettaCode.org task](http://rosettacode.org/wiki/Top_rank_per_group).
+ *  This case is expanded to take somebody with no (Null) salary and equal earning colleagues.
+ *
+ *  How it works:
+ *  One composed query produces all the rows necessary for the output. The composed query is
+ *  made of a union (union all) of queries mostly making a row per department. Two queries
+ *  making aggregated data of the whole table to summarize the payroll. All rows are tagged
+ *  by a section id in the first column.
+ *  The core query of it produces a row per employee with the personal data by counting per
+ *  employee the employees (and its self) who are earning the same or more in a department.
+ *  This number of employees is the ranking number which is filtered to be less or equal to N.
+ *  All rows are sorted in the database by department (if any), section header and in descending
+ *  order the salaries (if any).
+ */
 
 /** The main application*/
 object TopNrankSLICKplainSql extends App {
@@ -178,14 +188,7 @@ object TopNrankSLICKplainSql extends App {
 
   ////////////////////////// Main program starts here //////////////////////////////
 
-  Emp.printJvmBanner()
-
-  // Inspect generated SQL  
-  if (PortableDriver.stringToBoolean(System.getProperty("printSQL", ""))) {
-    println(plainQuery.getStatement)
-    println
-  }
-
+  PortableDriver.doConditionalPrintSQL(plainQuery.getStatement)
   PortableDriver.db.withTransaction {
     implicit session =>
 
